@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">UnsplashExample01</string>
+    <string name="search_term_hint">사진검색</string>
+</resources>

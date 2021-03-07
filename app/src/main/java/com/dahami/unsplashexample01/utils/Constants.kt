@@ -9,3 +9,16 @@ enum class SEARCH_TYPE {
     PHOTO,
     USER
 }
+
+enum class RESPONSE_STATUS {
+    OKAY,
+    FAIL,
+    NO_CONTENT
+}
+
+object API {
+    const val BASE_URL: String = "https://api.unsplash.com/"
+    const val CLIENT_ID: String = "URIsBgmiV5gPunjAXCjr-tHxLpA9nMAT0i0PQpCV0rw"
+    const val SEARCH_PHOTO = "search/photos"
+    const val SEARCH_USERS = "search/users"
+}

@@ -4,6 +4,29 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
 
+// 문자열이 JSON 형태인지
+fun String?.isJsonObject(): Boolean {
+    if(this?.startsWith("{") == true && this.endsWith("}")) {
+        return true
+    }else {
+        return false
+    }
+
+//    return this?.startsWith("{") == true && this.endsWith("}")
+}
+
+// 문자열이 JSON 배열인지
+fun String?.isJsonArray(): Boolean {
+    if(this?.startsWith("[") == true && this.endsWith("]")) {
+        return true
+    }else {
+        return false
+    }
+}
+
+// 초간단 버전
+//fun String?.isJsonObjectSimple(): Boolean = this?.startsWith("{") == true && this.endsWith("}")
+
 // EditText에 대한 확장 - 변경 이벤트를 미리 정의
 // TODO: completion 사용 방법과 원리를 이해하기!
 fun EditText.onMyTextChanged(completion: (Editable?) -> Unit) {

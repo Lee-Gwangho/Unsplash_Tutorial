@@ -1,12 +1,12 @@
-package com.dahami.unsplashexample01
+package com.dahami.unsplashexample01.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import com.dahami.unsplashexample01.R
 import com.dahami.unsplashexample01.retrofit.RetrofitManager
 import com.dahami.unsplashexample01.utils.Constants.TAG
 import com.dahami.unsplashexample01.utils.RESPONSE_STATUS
@@ -33,14 +33,16 @@ class MainActivity : AppCompatActivity() {
                 R.id.photo_search_radio_btn -> {
                     Log.d(TAG, "사진 검색 버튼 클릭")
                     search_term_text_layout.hint = "사진 검색"
-                    search_term_text_layout.startIconDrawable = resources.getDrawable(R.drawable.ic_baseline_photo_library_24, resources.newTheme())
+                    search_term_text_layout.startIconDrawable = resources.getDrawable(
+                        R.drawable.ic_baseline_photo_library_24, resources.newTheme())
                     this.currentSearchType = SEARCH_TYPE.PHOTO
                 }
 
                 R.id.user_search_radio_btn -> {
                     Log.d(TAG, "사용자 검색 버튼 클릭")
                     search_term_text_layout.hint = "사용자 검색"
-                    search_term_text_layout.startIconDrawable = resources.getDrawable(R.drawable.ic_baseline_person_24, resources.newTheme())
+                    search_term_text_layout.startIconDrawable = resources.getDrawable(
+                        R.drawable.ic_baseline_person_24, resources.newTheme())
                     this.currentSearchType = SEARCH_TYPE.USER
                 }
             }

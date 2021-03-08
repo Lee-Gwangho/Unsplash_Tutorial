@@ -1,4 +1,4 @@
-package com.dahami.unsplashexample01
+package com.dahami.unsplashexample01.activities
 
 import android.app.SearchManager
 import android.content.Context
@@ -14,10 +14,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
+import com.dahami.unsplashexample01.R
 import com.dahami.unsplashexample01.model.Photo
+import com.dahami.unsplashexample01.model.SearchData
 import com.dahami.unsplashexample01.recyclerview.PhotoGridRecyclerViewAdapter
 import com.dahami.unsplashexample01.utils.Constants.TAG
+import com.dahami.unsplashexample01.utils.SharedPrefManager
 import kotlinx.android.synthetic.main.activity_photo_collection.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 class PhotoCollectionActivity: AppCompatActivity(),
                             SearchView.OnQueryTextListener,
@@ -27,6 +32,9 @@ class PhotoCollectionActivity: AppCompatActivity(),
 
     // 데이터
     private var photoList = ArrayList<Photo>()
+
+    // 검색 기록 배열
+    private var searchHistoryList = ArrayList<SearchData>()
 
     // 어답터
     private lateinit var photoGridRecyclerViewAdapter: PhotoGridRecyclerViewAdapter
@@ -63,6 +71,13 @@ class PhotoCollectionActivity: AppCompatActivity(),
 
         my_photo_recycler_view.layoutManager = GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false)
         my_photo_recycler_view.adapter = this.photoGridRecyclerViewAdapter
+
+        //저장된 검색 기록 가져오기
+        this.searchHistoryList = SharedPrefManager.getSearchHistoryList() as ArrayList<SearchData>
+
+        this.searchHistoryList.forEach {
+            Log.d(TAG, "저장된 검색 기록 - it.term : ${it.term}, it.timestamp : ${it.timestamp}")
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -118,6 +133,11 @@ class PhotoCollectionActivity: AppCompatActivity(),
 
             //TODO:: api 호출
             //TODO:: 검색어 저장
+
+            var newSearchData = SearchData(term = query, timestamp = Date().toString())
+            this.searchHistoryList.add(newSearchData)
+
+            SharedPrefManager.storeSearchHistoryList(this.searchHistoryList)
         }
 //        this.mySearchView.setQuery("", false)
 //        this.mySearchView.clearFocus()

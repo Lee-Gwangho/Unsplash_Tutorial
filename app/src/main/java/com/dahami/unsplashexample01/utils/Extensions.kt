@@ -3,6 +3,8 @@ package com.dahami.unsplashexample01.utils
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
+import java.text.SimpleDateFormat
+import java.util.*
 
 // 문자열이 JSON 형태인지
 fun String?.isJsonObject(): Boolean {
@@ -24,6 +26,11 @@ fun String?.isJsonArray(): Boolean {
     }
 }
 
+// 날짜 포맷
+fun Date.toString() : String {
+    val format = SimpleDateFormat("HH-mm-ss")
+    return format.format(this)
+}
 // 초간단 버전
 //fun String?.isJsonObjectSimple(): Boolean = this?.startsWith("{") == true && this.endsWith("}")
 

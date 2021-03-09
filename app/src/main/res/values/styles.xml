@@ -7,11 +7,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!-- Material 테 -->
-    <style name="Theme.MyApp" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+    <!-- Material 테마 -->
+    <style name="MaterialTheme" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <!-- ?attr/selectableItemBackground-->
+        <item name="colorControlHighlight">@color/colorPrimary</item>
     </style>
 
     <style name="MyRadioButton" parent="Widget.MaterialComponents.CompoundButton.RadioButton">

@@ -2,8 +2,10 @@ package com.dahami.unsplashexample01.activities
 
 import android.app.SearchManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Editable
 import android.text.InputFilter
 import android.util.Log
 import android.view.Menu
@@ -25,10 +27,24 @@ import com.dahami.unsplashexample01.retrofit.RetrofitManager
 import com.dahami.unsplashexample01.utils.Constants.TAG
 import com.dahami.unsplashexample01.utils.RESPONSE_STATUS
 import com.dahami.unsplashexample01.utils.SharedPrefManager
+import com.dahami.unsplashexample01.utils.textChangesToFlow
 import com.dahami.unsplashexample01.utils.toSimpleString
+import com.jakewharton.rxbinding4.widget.textChangeEvents
+import com.jakewharton.rxbinding4.widget.textChanges
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_photo_collection.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+import kotlin.coroutines.CoroutineContext
 
 class PhotoCollectionActivity: AppCompatActivity(),
                             SearchView.OnQueryTextListener,
@@ -55,6 +71,14 @@ class PhotoCollectionActivity: AppCompatActivity(),
     // 서치뷰 에디트 텍스트
     private lateinit var mySearchViewEditText: EditText
 
+    // rx 적용
+    // 옵저버 통합 제거를 위한 CompositeDisposable
+//    private var myCompositeDisposable = CompositeDisposable()
+
+    private var myCoroutineJob: Job = Job()
+    private val myCoroutineContext: CoroutineContext
+    get() = Dispatchers.IO + myCoroutineJob
+    // Dispatchers.IO : 네트워크 I/O 실행에 최적화
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +126,15 @@ class PhotoCollectionActivity: AppCompatActivity(),
         }
     }
 
+    override fun onDestroy() {
+        Log.d(TAG, "PhotoCollectionActivity - onDestroy() called")
+        // rx 적용
+        // 모두 삭제
+//        this.myCompositeDisposable.clear() // 모두 삭제
+
+        myCoroutineContext.cancel()
+        super.onDestroy()
+    }
     // 검색 기록 리사이클러뷰 준비
     private fun searchHistoryRecyclerViewSetting(searchHistoryList: ArrayList<SearchData>) {
         Log.d(TAG, "PhotoCollectionActivity - searchHistoryRecyclerViewSetting() called ")
@@ -150,7 +183,7 @@ class PhotoCollectionActivity: AppCompatActivity(),
                 when(hasExpanded) {
                     true -> {
                         Log.d(TAG, "서치뷰 열림")
-                        linear_search_history_view.visibility = View.VISIBLE
+//                        linear_search_history_view.visibility = View.VISIBLE
                         // ui처리
                         handleSearchViewUi()
                     }
@@ -162,7 +195,58 @@ class PhotoCollectionActivity: AppCompatActivity(),
             }
             // 서치뷰에서 에디트 덱스트를 가져온다.
             mySearchViewEditText = this.findViewById(androidx.appcompat.R.id.search_src_text)
+            // Rx 적용부분
+            /*
+            // SearchViewEditText Observable
+            val editTextChangeObservable = mySearchViewEditText.textChanges()
+            val searchEditTextSubscription: Disposable =
+                // 옵저버블의 오퍼레이터 추가
+                editTextChangeObservable
+                    // 글자가 입력되고 나서, 0.8초 후에 onNext 이벤트로 데이터 흘려보내기
+                    .debounce(800, TimeUnit.MILLISECONDS)
+                    // IO 쓰레드에서 돌리겠다.
+                    // Scheduler instance intended for IO-bound work.
+                    // 네트워크 요청, 파일 읽기/쓰기, 디비처리 등
+                    .subscribeOn(Schedulers.io())
+                    // 구독을 위한 이벤트 응답 받기
+                    .subscribeBy(
+                        onNext = {
+                            Log.d("RX", "onNext : $it")
+                            //TODO:: 흘러들어온 이벤트 데이터로 API 호출
+                            if(it.isNotEmpty()) {
+                                searchPhotoApiCall(it.toString())
+                            }
+                        },
+                        onComplete = {
+                            Log.d("RX", "onComplete")
+                        },
+                        onError = {
+                            Log.d("RX", "onError : $it")
+                        }
+                    )
+            */
+            // compositeDispsable에 추가
+//            myCompositeDisposable.add(searchEditTextSubscription)
+
+            // Rx의 스케줄러와 비슷
+            // IO 스레드에서 돌리겠다.
+
+            GlobalScope.launch(context = myCoroutineContext) {
+                // editText가 변경되었을 때
+                val editTextFlow =  mySearchViewEditText.textChangesToFlow()
+                editTextFlow
+                    // 연산자들
+                    // 입력 후, 2초 뒤에 받는다.
+                    .debounce(2000)
+                    .filter {
+                        it?.length!! > 0 // 검색어가 유효할 때만, 이벤트를 받는다.
+                    }
+                    .onEach {
+                    Log.d(TAG, "flow를 받는다. $it")
+                }.launchIn(this)
+            }
         }
+
 
         this.mySearchViewEditText.apply {
             this.filters = arrayOf(InputFilter.LengthFilter(12))
@@ -201,7 +285,6 @@ class PhotoCollectionActivity: AppCompatActivity(),
         Log.d(TAG, "onQueryTextChange() called / newText : $newText")
 
         val userInputText = newText ?: ""
-
 //        val userInputText = newText.let {
 //            it
 //        }?: ""
@@ -209,6 +292,10 @@ class PhotoCollectionActivity: AppCompatActivity(),
         if(userInputText.count() == 12) {
             Toast.makeText(this, "검색어는 12자 까지만 입력가능합니다", Toast.LENGTH_SHORT).show()
         }
+
+//        if(userInputText.length in 1..12) {
+//            searchPhotoApiCall(userInputText)
+//        }
         return true
     }
 
